@@ -8,8 +8,10 @@ import {
   type NodeChange,
 } from "@xyflow/react";
 import { create } from "zustand";
-import type { WorkflowFlowNode } from "../types/workflow-node";
-import type { WorkflowNodeType } from "../types/workflow-node";
+import type {
+  WorkflowFlowNode,
+  WorkflowNodeType,
+} from "../types/workflow-node";
 import { createId } from "@/shared/utils/id";
 // 状态
 type WorkflowEditorState = {
@@ -22,7 +24,7 @@ type WorkflowEditorState = {
   onConnect: (connection: Connection) => void;
   selectNode: (nodeId?: string) => void;
   updateNodeLabel: (nodeId: string, label: string) => void;
-  addNode: (nodetype: WorkflowNodeType) => void;
+  addNode: (nodeType: WorkflowNodeType) => void;
 };
 
 // TODO 后续从接口或本地草稿中恢复数据
@@ -55,6 +57,7 @@ const initialEdges: Edge[] = [
   },
 ];
 
+// 创建节点
 function createWorkflowFlowNode(
   nodeType: WorkflowNodeType,
   index: number,
@@ -71,6 +74,47 @@ function createWorkflowFlowNode(
       nodeType,
     },
   };
+}
+
+// 连线校验
+function canConnect(
+  connection: Connection,
+  nodes: WorkflowFlowNode[],
+  edges: Edge[],
+) {
+  if (!connection.source || !connection.target) {
+    return false;
+  }
+
+  if (connection.source === connection.target) {
+    return false;
+  }
+
+  const sourceNode = nodes.find((node) => node.id === connection.source);
+  const targetNode = nodes.find((node) => node.id === connection.target);
+
+  if (!sourceNode || !targetNode) {
+    return false;
+  }
+
+  if (sourceNode.data.nodeType === "end") {
+    return false;
+  }
+
+  if (targetNode.data.nodeType === "start") {
+    return false;
+  }
+
+  const alreadyConnected = edges.some(
+    (edge) =>
+      edge.source === connection.source && edge.target === connection.target,
+  );
+
+  if (alreadyConnected) {
+    return false;
+  }
+
+  return true;
 }
 
 // TODO 节点标签映射（待扩展）
@@ -108,8 +152,15 @@ export const useWorkflowEditorStore = create<WorkflowEditorState>(
     },
 
     onConnect: (connection) => {
+      const nodes = get().nodes;
+      const edges = get().edges;
+
+      if (!canConnect(connection, nodes, edges)) {
+        return;
+      }
+
       set({
-        edges: addEdge(connection, get().edges),
+        edges: addEdge(connection, edges),
       });
     },
 
