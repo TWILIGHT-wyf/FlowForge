@@ -1,6 +1,6 @@
 import type { Node } from "@xyflow/react";
 
-// 节点业务标签类型
+// TODO 待扩展
 export type WorkflowNodeType = "start" | "http" | "condition" | "end";
 
 // 节点业务数据类型

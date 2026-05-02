@@ -9,7 +9,8 @@ import {
 } from "@xyflow/react";
 import { create } from "zustand";
 import type { WorkflowFlowNode } from "../types/workflow-node";
-
+import type { WorkflowNodeType } from "../types/workflow-node";
+import { createId } from "@/shared/utils/id";
 // 状态
 type WorkflowEditorState = {
   nodes: WorkflowFlowNode[];
@@ -21,6 +22,7 @@ type WorkflowEditorState = {
   onConnect: (connection: Connection) => void;
   selectNode: (nodeId?: string) => void;
   updateNodeLabel: (nodeId: string, label: string) => void;
+  addNode: (nodetype: WorkflowNodeType) => void;
 };
 
 // TODO 后续从接口或本地草稿中恢复数据
@@ -53,48 +55,92 @@ const initialEdges: Edge[] = [
   },
 ];
 
-export const useWorkflowEditorStore = create<WorkflowEditorState>((set, get) => ({
-  nodes: initialNodes,
-  edges: initialEdges,
-  selectedNodeId: undefined,
+function createWorkflowFlowNode(
+  nodeType: WorkflowNodeType,
+  index: number,
+): WorkflowFlowNode {
+  const id = createId(nodeType);
 
-  onNodesChange: (changes) => {
-    set({
-      nodes: applyNodeChanges(changes, get().nodes),
-    });
-  },
+  return {
+    id,
+    type: FLOW_NODE_TYPE_MAP[nodeType],
+    // TODO: 后续根据当前画布视口中心或拖拽释放位置生成节点坐标。
+    position: { x: 260 + index * 40, y: 160 + index * 30 },
+    data: {
+      label: NODE_LABEL_MAP[nodeType],
+      nodeType,
+    },
+  };
+}
 
-  onEdgesChange: (changes) => {
-    set({
-      edges: applyEdgeChanges(changes, get().edges),
-    });
-  },
+// TODO 节点标签映射（待扩展）
+const NODE_LABEL_MAP = {
+  start: "Start",
+  http: "HTTP Request",
+  condition: "Condition",
+  end: "End",
+} satisfies Record<WorkflowNodeType, string>;
 
-  onConnect: (connection) => {
-    set({
-      edges: addEdge(connection, get().edges),
-    });
-  },
+// TODO ReactFlow节点渲染类型映射（待扩展）
+const FLOW_NODE_TYPE_MAP = {
+  start: "input",
+  http: "default",
+  condition: "default",
+  end: "output",
+} satisfies Record<WorkflowNodeType, "input" | "default" | "output">;
 
-  selectNode: (nodeId) => {
-    set({
-      selectedNodeId: nodeId,
-    });
-  },
+export const useWorkflowEditorStore = create<WorkflowEditorState>(
+  (set, get) => ({
+    nodes: initialNodes,
+    edges: initialEdges,
+    selectedNodeId: undefined,
 
-  updateNodeLabel: (nodeId, label) => {
-    set((state) => ({
-      nodes: state.nodes.map((node) =>
-        node.id === nodeId
-          ? {
-              ...node,
-              data: {
-                ...node.data,
-                label,
-              },
-            }
-          : node,
-      ),
-    }));
-  },
-}));
+    onNodesChange: (changes) => {
+      set({
+        nodes: applyNodeChanges(changes, get().nodes),
+      });
+    },
+
+    onEdgesChange: (changes) => {
+      set({
+        edges: applyEdgeChanges(changes, get().edges),
+      });
+    },
+
+    onConnect: (connection) => {
+      set({
+        edges: addEdge(connection, get().edges),
+      });
+    },
+
+    selectNode: (nodeId) => {
+      set({
+        selectedNodeId: nodeId,
+      });
+    },
+
+    updateNodeLabel: (nodeId, label) => {
+      set((state) => ({
+        nodes: state.nodes.map((node) =>
+          node.id === nodeId
+            ? {
+                ...node,
+                data: {
+                  ...node.data,
+                  label,
+                },
+              }
+            : node,
+        ),
+      }));
+    },
+    addNode: (nodeType) => {
+      const node = createWorkflowFlowNode(nodeType, get().nodes.length);
+
+      set((state) => ({
+        nodes: [...state.nodes, node],
+        selectedNodeId: node.id,
+      }));
+    },
+  }),
+);
