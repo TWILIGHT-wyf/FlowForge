@@ -10,6 +10,7 @@ import {
 import { create } from "zustand";
 import type { WorkflowFlowNode } from "../types/workflow-node";
 
+// 状态
 type WorkflowEditorState = {
   nodes: WorkflowFlowNode[];
   edges: Edge[];
@@ -19,8 +20,10 @@ type WorkflowEditorState = {
   onEdgesChange: (changes: EdgeChange<Edge>[]) => void;
   onConnect: (connection: Connection) => void;
   selectNode: (nodeId?: string) => void;
+  updateNodeLabel: (nodeId: string, label: string) => void;
 };
 
+// TODO 后续从接口或本地草稿中恢复数据
 const initialNodes: WorkflowFlowNode[] = [
   {
     id: "start-1",
@@ -50,34 +53,48 @@ const initialEdges: Edge[] = [
   },
 ];
 
-export const useWorkflowEditorStore = create<WorkflowEditorState>(
-  (set, get) => ({
-    nodes: initialNodes,
-    edges: initialEdges,
-    selectedNodeId: undefined,
+export const useWorkflowEditorStore = create<WorkflowEditorState>((set, get) => ({
+  nodes: initialNodes,
+  edges: initialEdges,
+  selectedNodeId: undefined,
 
-    onNodesChange: (changes) => {
-      set({
-        nodes: applyNodeChanges(changes, get().nodes),
-      });
-    },
+  onNodesChange: (changes) => {
+    set({
+      nodes: applyNodeChanges(changes, get().nodes),
+    });
+  },
 
-    onEdgesChange: (changes) => {
-      set({
-        edges: applyEdgeChanges(changes, get().edges),
-      });
-    },
+  onEdgesChange: (changes) => {
+    set({
+      edges: applyEdgeChanges(changes, get().edges),
+    });
+  },
 
-    onConnect: (connection) => {
-      set({
-        edges: addEdge(connection, get().edges),
-      });
-    },
+  onConnect: (connection) => {
+    set({
+      edges: addEdge(connection, get().edges),
+    });
+  },
 
-    selectNode: (nodeId) => {
-      set({
-        selectedNodeId: nodeId,
-      });
-    },
-  }),
-);
+  selectNode: (nodeId) => {
+    set({
+      selectedNodeId: nodeId,
+    });
+  },
+
+  updateNodeLabel: (nodeId, label) => {
+    set((state) => ({
+      nodes: state.nodes.map((node) =>
+        node.id === nodeId
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                label,
+              },
+            }
+          : node,
+      ),
+    }));
+  },
+}));

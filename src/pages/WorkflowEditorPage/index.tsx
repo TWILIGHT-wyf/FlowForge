@@ -1,5 +1,6 @@
 import NodePalette from "@/features/canvas/components/NodePalette";
 import WorkflowCanvas from "@/features/canvas/components/WorkflowCanvas";
+import NodeConfigPanel from "@/features/node-config/components/NodeConfigPanel";
 import { useParams } from "react-router-dom";
 
 export default function WorkflowEditorPage() {
@@ -43,6 +44,7 @@ export default function WorkflowEditorPage() {
       >
         <NodePalette />
         <WorkflowCanvas />
+        <NodeConfigPanel/>
       </main>
     </div>
   );
