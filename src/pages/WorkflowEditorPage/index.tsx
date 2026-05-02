@@ -40,11 +40,12 @@ export default function WorkflowEditorPage() {
           flex: 1,
           display: "flex",
           minHeight: 0,
+          overflow: "hidden",
         }}
       >
         <NodePalette />
         <WorkflowCanvas />
-        <NodeConfigPanel/>
+        <NodeConfigPanel />
       </main>
     </div>
   );
