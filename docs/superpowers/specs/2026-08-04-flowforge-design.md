@@ -120,6 +120,7 @@ interface WorkflowEdge {
 - 节点元数据（类型名、中文名、输入/输出端口、属性表单 schema）放 shared
 - 执行器（`execute(ctx, config)`）放 server
 - 元数据单一来源，前端属性面板由元数据驱动渲染
+- `condition` 节点输出端口为 `true` / `false`（另含 `result`），用于分支选路
 
 ## 6. 执行引擎（server 包）
 
@@ -133,6 +134,7 @@ interface WorkflowEdge {
 ### 6.2 执行
 
 - 拓扑排序，同层无依赖节点并行执行
+- MVP 采用 Node-RED 风格 OR-join：节点收到任一上游交付即触发执行（独占分支可用）；多上游聚合（AND-join）不在 MVP 范围，作为已知限制记录
 - 节点执行器统一接口：
 
 ```ts
