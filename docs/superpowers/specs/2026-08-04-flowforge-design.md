@@ -24,6 +24,7 @@
    - 基础问答：开始 → LLM → 结束
    - 条件分流：开始 → LLM → 条件分支 →（命中/未命中）→ 结束
    - Mock 检索链路：开始 → HTTP（mock 检索接口）→ LLM → 结束
+   - 预置工作流以模板形式内置，随仓库提供，启动后立即可见
 5. 运行过程逐步可观测：节点状态实时更新、节点级日志可见、LLM 流式输出可见、运行历史可回放
 
 ## 3. 非目标（明确不做）
@@ -65,6 +66,7 @@ E:\Develop\FlowForge\
 - REST：工作流 CRUD、创建运行、取消运行（`POST /runs/:id/cancel`）
 - SSE：`GET /runs/:id/events` 推送运行过程事件
 - 事件总线抽象：server 侧每个运行实例一个事件流，SSE 是一个适配器；client 侧统一订阅封装进入 `runStore`。将来加 WebSocket 只新增适配器，引擎和 UI 不变
+- 内置 mock 接口（如 `GET /api/mock/search`）供 HTTP 节点演示"检索"链路，无需外部依赖
 
 ## 5. 数据模型（shared 包）
 
